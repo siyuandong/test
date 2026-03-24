@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Interval Timer</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background: #111;
+    color: white;
+    margin-top: 30px;
+  }
+  h1 { font-size: 36px; }
+  #mode { font-size: 26px; margin: 10px; }
+  #time { font-size: 70px; margin: 20px; }
+  .info { font-size: 18px; margin: 5px; }
+
+  select {
+    font-size: 18px;
+    padding: 5px;
+    margin: 5px;
+    border-radius: 8px;
+  }
+
+  button {
+    font-size: 18px;
+    padding: 10px 20px;
+    margin: 10px;
+    border: none;
+    border-radius: 10px;
+  }
+
+  .start { background: #28a745; color: white; }
+  .stop { background: #dc3545; color: white; }
+</style>
+</head>
+<body>
+
+<h1>🏃 Interval Timer</h1>
+
+<div>
+  🏃 Run:
+  <select id="runSelect"></select> min
+</div>
+
+<div>
+  🚶 Walk:
+  <select id="walkSelect"></select> min
+</div>
+
+<div id="mode">Ready</div>
+<div id="time">00:00</div>
+
+<div class="info">⏱ Total Time: <span id="total">00:00</span></div>
+<div class="info">🔁 Rounds: <span id="rounds">0</span></div>
+
+<button class="start" onclick="startTimer()">Start</button>
+<button class="stop" onclick="stopTimer()">Stop</button>
+
+<audio id="beep">
+  <source src="https://actions.google.com/sounds/v1/alarms/bugle_tune.ogg" type="audio/ogg">
+</audio>
+
+<script>
+let workTime = 180;
+let restTime = 120;
+let currentTime = 0;
+let isWork = true;
+let timer = null;
+
+let totalSeconds = 0;
+let rounds = 0;
+
+// populate dropdowns
+function populateSelect(id) {
+  let select = document.getElementById(id);
+  for (let i = 1; i <= 10; i++) {
+    let option = document.createElement("option");
+    option.value = i;
+    option.text = i;
+    select.appendChild(option);
+  }
+}
+populateSelect("runSelect");
+populateSelect("walkSelect");
+
+// default values
+document.getElementById("runSelect").value = 3;
+document.getElementById("walkSelect").value = 2;
+
+function formatTime(seconds) {
+  let m = Math.floor(seconds / 60);
+  let s = seconds % 60;
+  return String(m).padStart(2, '0') + ":" + String(s).padStart(2, '0');
+}
+
+function updateDisplay() {
+  document.getElementById("time").innerText = formatTime(currentTime);
+  document.getElementById("mode").innerText = isWork ? "RUN 🏃" : "WALK 🚶";
+  document.getElementById("total").innerText = formatTime(totalSeconds);
+  document.getElementById("rounds").innerText = rounds;
+}
+
+function beep() {
+  let sound = document.getElementById("beep");
+  sound.play();
+  setTimeout(() => sound.play(), 300);
+  setTimeout(() => sound.play(), 600);
+}
+
+function startTimer() {
+  if (timer) return;
+
+  // get selected values
+  workTime = document.getElementById("runSelect").value * 60;
+  restTime = document.getElementById("walkSelect").value * 60;
+
+  currentTime = workTime;
+  isWork = true;
+
+  updateDisplay();
+
+  timer = setInterval(() => {
+    currentTime--;
+    totalSeconds++;
+    updateDisplay();
+
+    if (currentTime <= 0) {
+      beep();
+
+      if (isWork) rounds++;
+
+      isWork = !isWork;
+      currentTime = isWork ? workTime : restTime;
+    }
+  }, 1000);
+}
+
+function stopTimer() {
+  clearInterval(timer);
+  timer = null;
+  totalSeconds = 0;
+  rounds = 0;
+  currentTime = 0;
+  document.getElementById("mode").innerText = "Ready";
+  document.getElementById("time").innerText = "00:00";
+  updateDisplay();
+}
+</script>
+
+</body>
+</html>
